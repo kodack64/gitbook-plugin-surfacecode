@@ -3,7 +3,7 @@ module.exports = {
         assets: "./static",
         js: [
             "two.min.js",
-            "surfacecode.js",
+            "topological_code_drawer.js",
         ],
     },
     blocks: {

@@ -1,6 +1,5 @@
 # gitbook-plugin-surfacecode
-Honkit plugin for visualizing quantum circuit.
-Converting `{% surfacecode %} ... {% surfacecode %}` tags to the SVG image of quantum circuits using [two.js](https://two.js.org/).
+Honkit plugin for visualizing topological codes, such as surface code and color code. Converting `{% surfacecode %} ... {% endsurfacecode %}` tags to the SVG image of quantum circuits using [two.js](https://two.js.org/). The SVG elements are interactive, i.e., we can switch Pauli errors and stabilizer operators by clicking appropriate elements.
 
 ## Install
 
@@ -33,22 +32,34 @@ By inserting json-like object among the markdown, an interactive SVG components 
 ```
 {% surfacecode %}
 {
+    size: 400,
     type: "surface_code",
+    distance: 5,
+    show_primal: true,
+    show_dual: true,
+}
+{% endsurfacecode %}
+```
+
+<img src="./example/surface_code.png" width="400"/>
+
+```
+{% surfacecode %}
+{
+    size: 400,
+    type: "color_code_666",
     distance: 5,
 }
 {% endsurfacecode %}
 ```
 
+<img src="./example/color_code.png" width="400"/>
 
 ## Format
 
 - `distance (int)`: (required) code distance.
-- `type (str)`: (Any of "periodic", "normal", "rotated", "color-666", "color-666-periodic") Choose type of surface codes
-- `interactive_edge (bool)`: (default to false) If true, user can switch error status of qubits by clicking edges.
-- `interactive_face (bool)`: (default to false) If true, user can switch stabilizer operator by clicking faces.
-- `error_type_x (bool)`: (default to true) If true, show edges for X-errors, vertices for Z-stabilizers, and faces for X-stabilizers.
-- `error_type_z (bool)`: (default to true) Z/X flipped variant of `error_type_x`.
-- `default_edge_x (list[int])`: (optional) list of identifiers that are affected by errors.
-- `default_vertex_z (list[int])`: (optional) list of identifiers of active vertices.
-- `default_edge_z (list[int])`: (optional) Z/X flipped variant of `default_edge_x`.
-- `default_vertex_x (list[int])`: (optional) Z/X flipped variant of `default_vertex_x`.
+- `type (str)`: (required) Name of topological codes. Any of `["surface_code", "surface_code_rotate", "surface_code_periodic", "color_code_666", "color_code_666_periodic"]`.
+- `bind_error (bool)`: (default to true) If true, users can switch error status of qubits by clicking edges for surface codes and vertices for color codes.
+- `bind_stabilizer (bool)`: (default to true) If true, users can perform stabilizer operators by clicking faces of codes.
+- `initial_error (list[int] or list[list[int]])`: (optional) Indices of errornous qubits. In the case of surface codes, this value must be pair of lists for primal and dual lattices.
+- `initial_syndrome (list[int] or list[list[int]])`: (optional) Indices of active faces. In the case of surface codes, this value must be pair of lists for primal and dual lattices.

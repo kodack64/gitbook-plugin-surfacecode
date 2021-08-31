@@ -116,13 +116,29 @@ class EmbeddedGraph {
 
 class CheckerGraph extends EmbeddedGraph {
     set_size(step) {
+        this.step = step;
         this.step_x = step;
         this.step_y = step;
         this.vertex_radius = step * 0.2;
-        this.vertex_linewidth = step * 0.05;
+        this.vertex_linewidth = step * 0.1;
         this.edge_linewidth = step * 0.15;
         this.face_size = step * 1.0;
         this.face_rotation = 0;
+    }
+    initial_flip(errors, syndromes) {
+        let edge_keys = Array.from(Object.keys(this.Emap));
+        edge_keys.sort();
+        for (let index of errors) {
+            if (index < edge_keys.length)
+                this.flip_edge(this.Emap[edge_keys[index]])
+        }
+
+        let vertex_keys = Array.from(Object.keys(this.Vmap));
+        vertex_keys.sort();
+        for (let index of syndromes) {
+            if (index < vertex_keys.length)
+                this.flip_vertex(this.Vmap[vertex_keys[index]])
+        }
     }
     get_position_x(x) {
         return (x + 1) * this.step_x;
@@ -140,11 +156,13 @@ class CheckerGraph extends EmbeddedGraph {
             const py = this.get_position_y(v.p.y);
             let vertex = two.makeCircle(px, py, this.vertex_radius);
             vertex.fill = this.color_info.vertex_fill;
-            vertex.linewidth = this.vertex_linewidth;
-            if (v.active == 1)
+            if (v.active == 1) {
                 vertex.stroke = this.color_info.vertex_stroke_active;
-            else
+                vertex.linewidth = this.color_info.vertex_linewidth_ratio_active * this.step;
+            } else {
                 vertex.stroke = this.color_info.vertex_stroke_inactive;
+                vertex.linewidth = this.color_info.vertex_linewidth_ratio_inactive * this.step;
+            }
             v.dom = vertex;
         }
     }
@@ -217,8 +235,10 @@ class CheckerGraph extends EmbeddedGraph {
         v.active ^= 1;
         if (v.active == 1) {
             v.dom.stroke = this.color_info.vertex_stroke_active;
+            v.dom.linewidth = this.color_info.vertex_linewidth_ratio_active * this.step;
         } else {
             v.dom.stroke = this.color_info.vertex_stroke_inactive;
+            v.dom.linewidth = this.color_info.vertex_linewidth_ratio_inactive * this.step;
         }
     }
     flip_edge(e) {
@@ -312,20 +332,22 @@ class SurfaceCodeBase extends TopologicalCodeBase {
         this.build();
 
         const primal_color = {
-            vertex_fill: "#0000cc",
+            vertex_fill: "#8888cc",
             vertex_stroke_active: "#cc0000",
             vertex_stroke_inactive: "#000000",
-            vertex_linewidth_ratio: 0.2,
+            vertex_linewidth_ratio_active: 0.1,
+            vertex_linewidth_ratio_inactive: 0.05,
             edge_stroke_active: "#cc0000",
             edge_stroke_inactive: "#ccaaaa",
             edge_linewidth: 0.2,
             face_fill: "#eeaabb",
         }
         const dual_color = {
-            vertex_fill: "#cc0000",
+            vertex_fill: "#cc8888",
             vertex_stroke_active: "#0000cc",
             vertex_stroke_inactive: "#000000",
-            vertex_linewidth_ratio: 0.2,
+            vertex_linewidth_ratio_active: 0.1,
+            vertex_linewidth_ratio_inactive: 0.05,
             edge_stroke_active: "#0000cc",
             edge_stroke_inactive: "#aaaacc",
             edge_linewidth: 0.2,
@@ -352,6 +374,26 @@ class SurfaceCodeBase extends TopologicalCodeBase {
             this.primal.draw_vertex(two);
         if (this.info.show_dual)
             this.dual.draw_vertex(two);
+    }
+    initial_flip() {
+        if (this.info.initial_error[0] instanceof Array) {
+            var error_primal = this.info.initial_error[0]
+            var error_dual = this.info.initial_error[1]
+        } else {
+            var error_primal = this.info.initial_error
+            var error_dual = this.info.initial_error
+        }
+        if (this.info.initial_syndrome[0] instanceof Array) {
+            var syndrome_primal = this.info.initial_syndrome[0]
+            var syndrome_dual = this.info.initial_syndrome[1]
+        } else {
+            var syndrome_primal = this.info.initial_syndrome
+            var syndrome_dual = this.info.initial_syndrome
+        }
+        if (this.info.show_primal)
+            this.primal.initial_flip(error_primal, syndrome_primal);
+        if (this.info.show_dual)
+            this.dual.initial_flip(error_dual, syndrome_dual);
     }
     bind_func(two) {
         if (this.info.show_primal)
@@ -581,6 +623,21 @@ class ThreeColorableGraph extends EmbeddedGraph {
         this.face_rotation = 0;
         this.face_stroke = 3;
     }
+    initial_flip(errors, syndromes) {
+        let vertex_keys = Array.from(Object.keys(this.Vmap));
+        vertex_keys.sort();
+        for (let index of errors) {
+            if (index < vertex_keys.length)
+                this.flip_vertex(this.Vmap[vertex_keys[index]], true, true);
+        }
+
+        let face_keys = Array.from(Object.keys(this.Fmap));
+        face_keys.sort();
+        for (let index of syndromes) {
+            if (index < face_keys.length)
+                this.flip_face(this.Fmap[face_keys[index]], true, false);
+        }
+    }
     get_position_x(x) {
         return (x + 1) * this.step_x;
     };
@@ -767,6 +824,9 @@ class ColorCodeBase extends TopologicalCodeBase {
         this.graph.draw_edge(two);
         this.graph.draw_vertex(two);
     }
+    initial_flip() {
+        this.graph.initial_flip(this.info.initial_error, this.info.initial_syndrome);
+    }
     bind_func(two) {
         this.graph.bind_graph(two, this.info)
     }
@@ -927,10 +987,10 @@ class TopologicalCodeDrawer {
             info.bind_stabilizer = true;
         }
         if (!("initial_error" in info)) {
-            info.initial_error = "";
+            info.initial_error = [];
         }
         if (!("initial_syndrome" in info)) {
-            info.initial_syndrome = "";
+            info.initial_syndrome = [];
         }
 
         this.first_draw = true;
@@ -957,6 +1017,7 @@ class TopologicalCodeDrawer {
     }
     draw() {
         this.code.draw(this.two);
+        this.code.initial_flip();
         this.two.update();
         if (this.first_draw) {
             this.first_draw = false;
