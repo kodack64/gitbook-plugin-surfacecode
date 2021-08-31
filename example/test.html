@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>TopologicalCodeDrawer Demo</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type="text/javascript" src="../static/two.min.js"></script>
+    <script type="text/javascript" src="../static/topological_code_drawer.js"></script>
+</head>
+
+<body>
+    <div id="surface_code"></div>
+    <div id="surface_code_periodic"></div>
+    <div id="surface_code_rotate"></div>
+    <div id="color_code_666"></div>
+    <div id="color_code_666_periodic"></div>
+
+    <script>
+        const surface_code = {
+            size: 600,
+            type: "surface_code",
+            distance: 5,
+            show_primal: true,
+            show_dual: true,
+            bind_error: true,
+            bind_stabilizer: true,
+            initial_error: "",
+            initial_syndrome: "",
+        };
+        const surface_code_periodic = {
+            size: 600,
+            type: "surface_code_periodic",
+            distance: 5,
+            show_primal: false,
+            show_dual: true,
+            bind_error: true,
+            bind_stabilizer: false,
+            initial_error: "",
+            initial_syndrome: "",
+        };
+        const surface_code_rotate = {
+            size: 600,
+            type: "surface_code_rotate",
+            distance: 5,
+            show_primal: true,
+            show_dual: true,
+            bind_error: true,
+            bind_stabilizer: true,
+            initial_error: "",
+            initial_syndrome: "",
+        };
+        const color_code_666 = {
+            size: 600,
+            type: "color_code_666",
+            distance: 5,
+            bind_error: true,
+            bind_stabilizer: true,
+            initial_error: "",
+            initial_syndrome: "",
+        };
+        const color_code_666_periodic = {
+            size: 400,
+            type: "color_code_666_periodic",
+            distance: 6,
+            bind_error: true,
+            bind_stabilizer: false,
+            initial_error: "",
+            initial_syndrome: "",
+        };
+        dict = {
+            "surface_code": surface_code,
+            "surface_code_periodic": surface_code_periodic,
+            "surface_code_rotate": surface_code_rotate,
+            "color_code_666": color_code_666,
+            "color_code_666_periodic": color_code_666_periodic,
+        }
+        for (let name in dict) {
+            info = dict[name];
+            const element = document.getElementById(name);
+            const obj = new TopologicalCodeDrawer(element, info);
+            obj.draw();
+        }
+    </script>
+</body>
+
+</html>
