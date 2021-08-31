@@ -2,12 +2,12 @@ module.exports = {
     website: {
         assets: "./static",
         js: [
-            "two.min.js",
             "topological_code_drawer.js",
+            "two.min.js",
         ],
     },
     blocks: {
-        qcircuit: {
+        surfacecode: {
             process: function(blk) {
                 return "<script>" + blk.body + "</script>";
             }
@@ -15,8 +15,8 @@ module.exports = {
     },
     hooks: {
         "page:before": function(page) {
-            results = page.content.match(/{% qcircuit %}((.*[\r\n]+)+?)?{% endqcircuit %}/igm);
-            if (results == null) return;
+            results = page.content.match(/{% surfacecode %}((.*[\r\n]+)+?)?{% endsurfacecode %}/igm);
+            if (results == null) return page;
 
             let len = results.length;
             circuit_names = [];
@@ -42,7 +42,7 @@ module.exports = {
                     var element = document.getElementById(key);
                     if (element == null) continue;
                     var circuit = circuit_list[key];
-                    drawer = new SurfaceCodeDrawer(element, circuit);
+                    drawer = new TopologicalCodeDrawer(element, circuit);
                     drawer.draw();
                 }
             }
